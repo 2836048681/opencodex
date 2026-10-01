@@ -652,6 +652,8 @@ export interface OcxProviderConfig {
   headers?: Record<string, string>;
   /** Inbound client metadata headers to copy to this provider when the outbound field is otherwise unset. */
   forwardClientHeaders?: string[];
+  /** Legacy local compatibility alias for a fixed outbound User-Agent. */
+  userAgent?: string;
   /** Default provider-routing preferences for models sent through the canonical OpenRouter API. */
   openRouterRouting?: OpenRouterProviderRouting;
   /** Exact model-id overrides for `openRouterRouting`. Each matching entry replaces the default. */

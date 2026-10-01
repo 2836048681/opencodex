@@ -65,6 +65,19 @@ describe("openai-responses forwardClientHeaders", () => {
     expect(headers["x-not-forwarded"]).toBeUndefined();
   });
 
+  test("legacy userAgent overrides static and forwarded caller User-Agent", () => {
+    const headers = buildHeaders({
+      adapter: "openai-responses",
+      baseUrl: "https://example.com/v1",
+      authMode: "key",
+      apiKey: "provider-key",
+      headers: { "User-Agent": "static-agent" },
+      forwardClientHeaders: ["user-agent"],
+      userAgent: "Codex Desktop/0.153.4 (Windows; x86_64)",
+    }, { "user-agent": "caller-agent" });
+
+    expect(headers["user-agent"]).toBe("Codex Desktop/0.153.4 (Windows; x86_64)");
+  });
   test("runtime refuses credential and transport headers even if validation is bypassed", () => {
     const headers = buildHeaders({
       adapter: "openai-responses",

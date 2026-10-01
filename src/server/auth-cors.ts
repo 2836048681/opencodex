@@ -1043,6 +1043,7 @@ const PROVIDER_CONFIG_FIELD_POLICY = {
   modelCosts: "editor",
   headers: "redacted",
   forwardClientHeaders: "editor",
+  userAgent: "editor",
   openRouterRouting: "editor",
   modelOpenRouterRouting: "editor",
   vercelGatewayRouting: "editor",

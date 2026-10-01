@@ -110,6 +110,18 @@ function applyConfiguredClientHeaderForwarding(
   }
 }
 
+/** Apply the legacy local User-Agent override after selected caller metadata. */
+function applyConfiguredUserAgentOverride(
+  headers: Record<string, string>,
+  provider: OcxProviderConfig,
+): void {
+  const value = provider.userAgent?.trim();
+  if (!value || /[\r\n]/.test(value)) return;
+  for (const name of Object.keys(headers)) {
+    if (name.toLowerCase() === "user-agent") delete headers[name];
+  }
+  headers["User-Agent"] = value;
+}
 /** Replace every `input_image` part under a routed-compaction body with a short marker. */
 function stripInputImagesDeep(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stripInputImagesDeep);
@@ -271,6 +283,7 @@ export function createResponsesPassthroughAdapter(provider: OcxProviderConfig): 
       // client fingerprint. Additional caller metadata is opt-in; static provider headers remain
       // authoritative in either auth mode.
       applyConfiguredClientHeaderForwarding(headers, incoming, provider);
+      applyConfiguredUserAgentOverride(headers, provider);
       applyCallerUserAgentFallback(headers, incoming);
 
       const forward = provider.authMode === "forward";

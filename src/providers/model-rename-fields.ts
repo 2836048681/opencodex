@@ -70,6 +70,7 @@ export const PROVIDER_MODEL_RENAME_ROLES = {
   autoReviewModelOverrides: "record",
   headers: "none",
   forwardClientHeaders: "none",
+  userAgent: "none",
   openRouterRouting: "none",
   modelOpenRouterRouting: "record",
   vercelGatewayRouting: "none",
