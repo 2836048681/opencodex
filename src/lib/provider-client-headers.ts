@@ -18,6 +18,7 @@ const BLOCKED_FORWARDED_CLIENT_HEADERS = new Set([
   "upgrade",
   "x-amz-security-token",
   "x-api-key",
+  "api-key",
   "x-goog-api-key",
   "x-oai-attestation",
 ]);

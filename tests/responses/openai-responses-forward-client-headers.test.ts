@@ -2,6 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { createResponsesPassthroughAdapter } from "../../src/adapters/openai-responses/passthrough";
 import { providerForwardClientHeadersConfigError } from "../../src/config/provider-validation";
 import { createTranslatorBudget } from "../../src/lib/translator-budget";
+import { providerConfigSeed } from "../../src/providers/derive";
+import { getProviderRegistryEntry } from "../../src/providers/registry";
+import { providerManagementConfigError } from "../../src/server/auth-cors";
 import type { OcxProviderConfig } from "../../src/types";
 
 function buildHeaders(provider: OcxProviderConfig, incoming: Record<string, string>): Record<string, string> {
@@ -68,12 +71,13 @@ describe("openai-responses forwardClientHeaders", () => {
       baseUrl: "https://example.com/v1",
       authMode: "key",
       apiKey: "provider-key",
-      forwardClientHeaders: ["authorization", "cookie", "content-type", "x-oai-attestation", "originator"],
+      forwardClientHeaders: ["authorization", "cookie", "content-type", "x-oai-attestation", "Api-Key", "originator"],
     }, {
       authorization: "Bearer caller-secret",
       cookie: "session=secret",
       "content-type": "text/plain",
       "x-oai-attestation": "attestation-secret",
+      "api-key": "caller-azure-secret",
       originator: "codex_cli_rs",
     });
 
@@ -81,7 +85,35 @@ describe("openai-responses forwardClientHeaders", () => {
     expect(headers.cookie).toBeUndefined();
     expect(headers["content-type"]).toBe("application/json");
     expect(headers["x-oai-attestation"]).toBeUndefined();
+    expect(headers["api-key"]).toBeUndefined();
     expect(headers.originator).toBe("codex_cli_rs");
+  });
+
+  test("runtime blocks mixed-case api-key in forward auth mode", () => {
+    const headers = buildHeaders({
+      adapter: "openai-responses",
+      baseUrl: "https://example.com/v1",
+      authMode: "forward",
+      forwardClientHeaders: ["Api-Key", "originator"],
+    }, {
+      "api-key": "caller-azure-secret",
+      originator: "codex_cli_rs",
+    });
+
+    expect(headers["api-key"]).toBeUndefined();
+    expect(headers.originator).toBe("codex_cli_rs");
+  });
+
+  test("canonical OpenAI provider accepts forwardClientHeaders as an operator overlay", () => {
+    const entry = getProviderRegistryEntry("openai");
+    expect(entry).toBeDefined();
+    const provider = providerConfigSeed(entry!);
+
+    expect(providerManagementConfigError("openai", {
+      ...provider,
+      codexAccountMode: "direct",
+      forwardClientHeaders: ["originator", "x-client-request-id"],
+    })).toBeNull();
   });
 
   test("validation rejects malformed, duplicate, credential, and transport-owned names", () => {
@@ -90,6 +122,7 @@ describe("openai-responses forwardClientHeaders", () => {
     expect(providerForwardClientHeadersConfigError(["bad header"])).toContain("valid HTTP header names");
     expect(providerForwardClientHeadersConfigError(["Originator", "originator"])).toContain("must not repeat");
     expect(providerForwardClientHeadersConfigError(["authorization"])).toContain("credential or transport-owned");
+    expect(providerForwardClientHeadersConfigError(["Api-Key"])).toContain("credential or transport-owned");
     expect(providerForwardClientHeadersConfigError(["content-length"])).toContain("credential or transport-owned");
   });
 });

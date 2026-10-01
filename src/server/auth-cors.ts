@@ -765,6 +765,9 @@ export function providerManagementConfigError(
     // validation and then rejected by the seed comparison, so canonical OpenAI could never
     // set OR clear it — the value was admitted and then refused in the same request.
     delete canonicalCandidate.annotateEmptyToolOutputs;
+    // forwardClientHeaders is an editor-managed request-metadata overlay. It is validated
+    // separately below and must not make an otherwise canonical OpenAI provider fail the seed check.
+    delete canonicalCandidate.forwardClientHeaders;
     // Canonical ChatGPT keeps WebSocket as the default, but an operator may
     // select the existing HTTP/SSE path without changing its auth or endpoint.
     if (raw.upstreamWebsocket !== undefined) {
