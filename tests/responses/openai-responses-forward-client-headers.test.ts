@@ -94,14 +94,16 @@ describe("openai-responses forwardClientHeaders", () => {
       adapter: "openai-responses",
       baseUrl: "https://example.com/v1",
       authMode: "forward",
-      forwardClientHeaders: ["Api-Key", "originator"],
+      forwardClientHeaders: ["Api-Key", "originator", "x-custom-client-meta"],
     }, {
       "api-key": "caller-azure-secret",
       originator: "codex_cli_rs",
+      "x-custom-client-meta": "custom-meta",
     });
 
     expect(headers["api-key"]).toBeUndefined();
     expect(headers.originator).toBe("codex_cli_rs");
+    expect(headers["x-custom-client-meta"]).toBe("custom-meta");
   });
 
   test("canonical OpenAI provider accepts forwardClientHeaders as an operator overlay", () => {
