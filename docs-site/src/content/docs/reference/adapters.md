@@ -137,8 +137,9 @@ configured provider key.
 The adapter preserves the incoming client's `User-Agent` as a fallback in both auth modes because
 some Responses-compatible providers use the Codex client fingerprint for compatibility behavior.
 An explicitly configured provider `User-Agent` remains authoritative regardless of header casing;
-if the caller sends none, OpenCodex does not invent one. No other caller header is widened by this
-exception.
+if the caller sends none, OpenCodex does not invent one. Other caller metadata is forwarded only
+when its name is explicitly listed in `forwardClientHeaders`; provider `headers` still win, and
+credential or transport-owned names are refused at configuration and runtime boundaries.
 
 Adapter selection does not select the upstream transport. Eligible requests can use the
 [upstream WebSocket proxy route](/reference/proxy-formats/#json-and-sse-output); invalid or unsupported

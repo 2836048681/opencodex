@@ -18,8 +18,10 @@ Responses-compatible streaming output. The routed provider name follows every ad
 
 The `openai-responses` adapter preserves the incoming `User-Agent` as a non-credential fallback in
 both key and forward modes. A configured provider header with that name wins case-insensitively;
-when the caller omits it, the adapter invents no client identity. This does not widen the canonical
-forward credential/metadata allowlist or copy any other caller header.
+when the caller omits it, the adapter invents no client identity. `forwardClientHeaders` can opt a
+provider into additional caller metadata one name at a time, but an existing provider header wins
+and credential or transport-owned names are rejected again at the adapter boundary. Canonical
+forward auth keeps its separate fixed credential/metadata allowlist.
 
 Retired Codex Spark has no model-specific tool or Responses Lite override; general Lite handling and
 namespace scrubbing remain shared compatibility behavior. Codex quota/reset evidence follows the

@@ -27,6 +27,7 @@ import {
   positiveIntegerRecordConfigError,
   providerBaseUrlConfigError,
   providerHeadersConfigError,
+  providerForwardClientHeadersConfigError,
   reasoningSummaryDeliveryRecordConfigError,
   upstreamHttpVersionConfigError,
 } from "../config/provider-validation";
@@ -794,6 +795,8 @@ export function providerManagementConfigError(
   }
   const headersError = providerHeadersConfigError(typed.headers);
   if (headersError) return `provider ${name} ${headersError}`;
+  const forwardClientHeadersError = providerForwardClientHeadersConfigError(raw.forwardClientHeaders);
+  if (forwardClientHeadersError) return `provider ${name} ${forwardClientHeadersError}`;
   const retryOn429Error = retryOn429PolicyConfigError(raw.retryOn429);
   if (retryOn429Error) {
     // The provider name is caller-controlled and can be token-shaped; redact and JSON-escape
@@ -1036,6 +1039,7 @@ const PROVIDER_CONFIG_FIELD_POLICY = {
   modelMaxOutputTokens: "editor",
   modelCosts: "editor",
   headers: "redacted",
+  forwardClientHeaders: "editor",
   openRouterRouting: "editor",
   modelOpenRouterRouting: "editor",
   vercelGatewayRouting: "editor",

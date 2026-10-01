@@ -46,6 +46,7 @@ import { applyTierDecisionToResponsesBody, normalizeCanonicalForwardContinuation
 import { normalizeImageGenClientTools, preferConfiguredHostedTools } from "./image-gen";
 import { stripMuseSparkUnsupportedWebSearchFields, stripOpenAiOnlyWebSearchFields } from "./web-search";
 import { observeOutbound } from "../../usage/cache-diagnostic";
+import { normalizeForwardedClientHeaderName } from "../../lib/provider-client-headers";
 import { normalizeMuseToolChoice } from "./muse-tool-choice";
 
 /**
@@ -92,6 +93,21 @@ function applyCallerUserAgentFallback(
   if (Object.keys(headers).some(name => name.toLowerCase() === "user-agent")) return;
   const userAgent = incoming.headers.get("user-agent");
   if (userAgent) headers["User-Agent"] = userAgent;
+}
+
+/** Copy only explicitly opted-in caller metadata; provider-owned headers remain authoritative. */
+function applyConfiguredClientHeaderForwarding(
+  headers: Record<string, string>,
+  incoming: IncomingMeta,
+  provider: OcxProviderConfig,
+): void {
+  for (const rawName of provider.forwardClientHeaders ?? []) {
+    const name = normalizeForwardedClientHeaderName(rawName);
+    if (name === null) continue;
+    if (Object.keys(headers).some(existing => existing.toLowerCase() === name)) continue;
+    const value = incoming.headers.get(name);
+    if (value) headers[name] = value;
+  }
 }
 
 /** Replace every `input_image` part under a routed-compaction body with a short marker. */
@@ -252,8 +268,9 @@ export function createResponsesPassthroughAdapter(provider: OcxProviderConfig): 
         if (provider.headers) Object.assign(headers, provider.headers);
       }
       // Some Responses-compatible gateways select their Codex compatibility path from the real
-      // client fingerprint. This is a single non-credential fallback, not broader caller-header
-      // forwarding. Static provider headers remain authoritative in either auth mode.
+      // client fingerprint. Additional caller metadata is opt-in; static provider headers remain
+      // authoritative in either auth mode.
+      applyConfiguredClientHeaderForwarding(headers, incoming, provider);
       applyCallerUserAgentFallback(headers, incoming);
 
       const forward = provider.authMode === "forward";

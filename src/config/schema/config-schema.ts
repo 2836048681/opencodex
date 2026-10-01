@@ -43,6 +43,7 @@ import {
   positiveIntegerRecordConfigError,
   providerBaseUrlConfigError,
   providerHeadersConfigError,
+  providerForwardClientHeadersConfigError,
   reasoningSummaryDeliveryRecordConfigError,
 } from "../provider-validation";
 import {
@@ -476,6 +477,16 @@ export const configSchema = z.object({
         code: "custom",
         path: ["providers", redactSecretString(name), "headers"],
         message: headersError,
+      });
+    }
+    const forwardClientHeadersError = providerForwardClientHeadersConfigError(
+      (provider as { forwardClientHeaders?: unknown }).forwardClientHeaders,
+    );
+    if (forwardClientHeadersError) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["providers", redactSecretString(name), "forwardClientHeaders"],
+        message: forwardClientHeadersError,
       });
     }
     const modelCostsError = providerModelCostsConfigError((provider as { modelCosts?: unknown }).modelCosts);
